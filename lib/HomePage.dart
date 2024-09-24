@@ -24,7 +24,7 @@ class HomePageState extends State<HomePage> {
 }
 
 class CustomSwitch extends StatelessWidget {
-  CustomSwitch({super.key});
+  const CustomSwitch({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +33,12 @@ class CustomSwitch extends StatelessWidget {
       onChanged: (value) {
         AppControler.instace.changeTheme();
       },
+      activeThumbImage: const AssetImage("darkTheme.png"),
+      inactiveThumbImage: const AssetImage("ligthTheme.png"),
+      activeColor: Colors.black,
+      inactiveThumbColor: Colors.white,
+      activeTrackColor: Colors.black,
+      inactiveTrackColor: Colors.white,
     );
   }
 }
