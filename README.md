@@ -2,6 +2,14 @@
 
 A new Flutter project.
 
+Created and Developed By:
+
+-Pedro Corrêa
+-Maria Luiza Ferreira
+-Julia Batista
+
+## AUTO ReadMe of Flutter
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
