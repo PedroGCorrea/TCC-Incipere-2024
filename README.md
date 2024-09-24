@@ -4,9 +4,7 @@ A new Flutter project.
 
 Created and Developed By:
 
--Pedro Corrêa
--Maria Luiza Ferreira
--Julia Batista
+-Pedro Corrêa & Maria Luiza Ferreira & Julia Batista
 
 ## Automatic Readme of Flutter
   
