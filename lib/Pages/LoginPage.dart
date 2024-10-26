@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:incipere/CreateAccountPage.dart';
-import 'package:incipere/HomePage.dart';
+import 'package:incipere/Pages/CreateAccountPage.dart';
+import 'package:incipere/Pages/HomePage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

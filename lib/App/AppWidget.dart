@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:incipere/AppControler.dart';
-import 'package:incipere/CreateAccountPage.dart';
-import 'package:incipere/HomePage.dart';
+import 'package:incipere/App/AppControler.dart';
+import 'package:incipere/Pages/CreateAccountPage.dart';
+import 'package:incipere/Pages/HomePage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:incipere/LoginPage.dart';
+import 'package:incipere/Pages/LoginPage.dart';
 
 class AppWidget extends StatelessWidget {
   const AppWidget({super.key});
@@ -21,7 +21,7 @@ class AppWidget extends StatelessWidget {
               brightness: AppControler.instace.darkTheme
                   ? Brightness.dark
                   : Brightness.light),
-          home: LoginPage(),
+          home: const LoginPage(),
         );
       },
     );

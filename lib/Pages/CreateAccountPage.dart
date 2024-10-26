@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:incipere/HomePage.dart';
+import 'package:incipere/Pages/HomePage.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({super.key});
@@ -17,7 +17,7 @@ class CreateAccountPageState extends State<CreateAccountPage> {
       appBar: AppBar(
         title: const Text("Sign Up"),
         backgroundColor: Colors.blueAccent,
-        actions: [],
+        actions: const [],
       ),
       body: SingleChildScrollView(
         child: Column(
