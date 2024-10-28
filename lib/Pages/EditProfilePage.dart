@@ -1,4 +1,3 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:incipere/Utils/UserPreferences.dart';
 import 'package:incipere/Widgets/AppBarWidget.dart';

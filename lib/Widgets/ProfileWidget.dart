@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 class ProfileWidget extends StatelessWidget {
@@ -8,11 +6,11 @@ class ProfileWidget extends StatelessWidget {
   final VoidCallback onClicked;
 
   const ProfileWidget({
-    Key? key,
+    super.key,
     required this.imagePath,
     this.isEdit = false,
     required this.onClicked,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

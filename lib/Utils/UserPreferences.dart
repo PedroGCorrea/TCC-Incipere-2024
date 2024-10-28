@@ -1,4 +1,3 @@
-import 'package:incipere/App/AppControler.dart';
 import 'package:incipere/model/user.dart';
 
 class UserPreferences {

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:incipere/App/AppControler.dart';
-import 'package:incipere/Pages/ProfilePage.dart';
 import 'package:incipere/Widgets/AppBarWidget.dart';
 
 class HomePage extends StatefulWidget {
