@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/App/AppControler.dart';
-import 'package:incipere/Pages/CreateAccountPage.dart';
-import 'package:incipere/Pages/HomePage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:incipere/Pages/LoginPage.dart';
 

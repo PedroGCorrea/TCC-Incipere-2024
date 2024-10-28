@@ -1,3 +1,4 @@
+import 'package:incipere/Model/post.dart';
 import 'package:incipere/model/user.dart';
 
 class UserPreferences {
