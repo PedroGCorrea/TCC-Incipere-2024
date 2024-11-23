@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/Pages/HomePage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({super.key});
@@ -11,11 +12,16 @@ class CreateAccountPage extends StatefulWidget {
 }
 
 class CreateAccountPageState extends State<CreateAccountPage> {
+  final nameControler = TextEditingController();
+  final usernameControler = TextEditingController();
+  final emailControler = TextEditingController();
+  final passwordControler = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sign Up"),
+        title: const Text("Create account"),
         backgroundColor: Colors.blueAccent,
         actions: const [],
       ),
@@ -35,34 +41,50 @@ class CreateAccountPageState extends State<CreateAccountPage> {
                 ),
               ),
             ),
-            const Padding(
-              padding:
-                  EdgeInsets.only(left: 15.0, right: 15.0, top: 15, bottom: 0),
+            Padding(
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
-                decoration: InputDecoration(
+                controller: nameControler,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Full Name',
+                    hintText: 'Enter your name'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 0),
+              //padding: EdgeInsets.symmetric(horizontal: 15),
+              child: TextField(
+                controller: usernameControler,
+                decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Username',
                     hintText: 'Enter a unique username'),
               ),
             ),
-            const Padding(
+            Padding(
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 0),
               child: TextField(
-                decoration: InputDecoration(
+                controller: emailControler,
+                decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Email',
                     hintText: 'Enter valid email id as abc@gmail.com'),
               ),
             ),
-            const Padding(
-              padding:
-                  EdgeInsets.only(left: 15.0, right: 15.0, top: 0, bottom: 0),
+            Padding(
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
+                controller: passwordControler,
                 obscureText: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Password',
                     hintText: 'Enter secure password'),
@@ -89,8 +111,9 @@ class CreateAccountPageState extends State<CreateAccountPage> {
                   borderRadius: BorderRadius.circular(20)),
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => HomePage()));
+                  saveData();
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const HomePage()));
                 },
                 child: const Text(
                   'Login',
@@ -105,5 +128,14 @@ class CreateAccountPageState extends State<CreateAccountPage> {
         ),
       ),
     );
+  }
+
+  void saveData() async {
+    await Supabase.instance.client.from('User').insert({
+      'name': nameControler.text,
+      'username': usernameControler.text,
+      'email': emailControler.text,
+      'password': passwordControler.text,
+    });
   }
 }
