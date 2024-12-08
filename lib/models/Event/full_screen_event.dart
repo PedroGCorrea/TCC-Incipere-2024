@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:incipere/models/Event/edit_event.dart';
 import 'package:incipere/widgets/main_bar.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,12 +16,51 @@ class EventDetailScreen extends StatefulWidget {
 class _EventDetailScreenState extends State<EventDetailScreen> {
   late Future<String?> _usernameFuture;
   late Future<bool> _isUserSubscribedFuture;
+  bool showFabOptions = false;
 
   @override
   void initState() {
     super.initState();
     _usernameFuture = _fetchUsername(widget.event['user_id']);
     _isUserSubscribedFuture = _checkIfUserIsSubscribed();
+  }
+
+  Future<void> _confirmDeleteEvent() async {
+    final shouldDelete = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Confirmar Exclusão'),
+              content: Text('Tem certeza de que deseja excluir este evento?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text('Excluir'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (shouldDelete) {
+      try {
+        await Supabase.instance.client
+            .from('events')
+            .delete()
+            .eq('event_id', widget.event['event_id']);
+        Navigator.pop(context); // Voltar à tela anterior após exclusão
+      } catch (error) {
+        debugPrint('Erro ao excluir evento: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao excluir evento. Tente novamente.')),
+        );
+      }
+    }
   }
 
   Future<String?> _fetchUsername(String userId) async {
@@ -188,6 +228,57 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           ),
         ),
       ),
+      floatingActionButton: widget.event['user_id'] == Supabase.instance.client.auth.currentUser?.id
+    ? Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (showFabOptions) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton(
+                heroTag: 'deleteEvent',
+                onPressed: _confirmDeleteEvent,
+                backgroundColor: Colors.red,
+                child: const Icon(Icons.delete),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: FloatingActionButton(
+                heroTag: 'editEvent',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          EditEventScreen(event: widget.event),
+                    ),
+                  ).then((value) {
+                    if (value == true) {
+                      // Recarregar os dados caso o evento tenha sido editado
+                      setState(() {});
+                    }
+                  });
+                },
+                backgroundColor: Colors.blue,
+                child: const Icon(Icons.edit),
+              ),
+            ),
+          ],
+          FloatingActionButton(
+            heroTag: 'mainFab',
+            onPressed: () {
+              setState(() {
+                showFabOptions = !showFabOptions;
+              });
+            },
+            child: Icon(showFabOptions ? Icons.close : Icons.more_vert),
+          ),
+        ],
+      )
+    : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

@@ -56,20 +56,17 @@ class _PostFullscreenState extends State<PostFullscreen> {
   }
 
   Future<void> _fetchLikeStatus() async {
-    var log = Logger();
     final response = await supabase
         .from('likes')
         .select()
         .eq('user_id', currentUserId.toString())
         .eq('post_id', widget.postId)
         .maybeSingle();
-    log.i(response);
 
     final countResponse = await supabase
         .from('likes')
         .count()
         .eq('post_id', widget.postId);
-    log.i(countResponse);
 
     setState(() {
       isLiked = response != null;

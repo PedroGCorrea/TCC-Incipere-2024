@@ -111,7 +111,7 @@ class _RegisterScreen3State extends State<RegisterScreen3> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Describe yourself',
+                      'Fale um pouco sobre você!',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
