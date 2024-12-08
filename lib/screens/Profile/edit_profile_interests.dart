@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InterestSelectionScreen extends StatefulWidget {
@@ -46,9 +47,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Selecionar Interesses'),
-      ),
+      appBar: MainAppBar(),
       body: ListView.builder(
         itemCount: categories.length,
         itemBuilder: (context, index) {

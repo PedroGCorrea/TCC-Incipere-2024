@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:incipere/models/Post/full_screen_post.dart';
 import 'package:incipere/screens/Profile/main_profile.dart';
 import 'package:incipere/screens/Settings/settings_page.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 
@@ -138,9 +139,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notificações'),
-      ),
+      appBar: MainAppBar(),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _notificationsFuture,
         builder: (context, snapshot) {

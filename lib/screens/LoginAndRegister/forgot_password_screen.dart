@@ -37,9 +37,6 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Recuperação de Senha'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

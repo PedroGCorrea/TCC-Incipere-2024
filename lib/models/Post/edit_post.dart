@@ -2,6 +2,7 @@ import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:incipere/services/edit_creative_process_modal.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert'; 
@@ -262,10 +263,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Editar Post'),
-        centerTitle: true,
-      ),
+      appBar: MainAppBar(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(

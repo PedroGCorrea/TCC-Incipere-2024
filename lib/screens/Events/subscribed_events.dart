@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:incipere/models/Event/full_screen_event.dart';
 
@@ -41,9 +42,7 @@ class _SubscribedEventsState extends State<SubscribedEvents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meus Eventos Inscritos'),
-      ),
+      appBar: MainAppBar(),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _subscribedEventsFuture,
         builder: (context, snapshot) {

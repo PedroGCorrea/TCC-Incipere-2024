@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:incipere/models/Post/full_screen_post.dart';
 import 'package:incipere/screens/Profile/edit_profile.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -15,8 +17,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final supabase = Supabase.instance.client;
   Map<String, dynamic>? _userProfileData;
   List<Map<String, String>> _interests = [];
+  List<dynamic> _userPosts = [];
   bool _isLoading = true;
   bool _isFollowing = false;
+  bool _showPosts = false;
   int _followersCount = 0;
   int _postCount = 0;
   final currentUserId = Supabase.instance.client.auth.currentUser?.id;
@@ -222,9 +226,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
         MaterialPageRoute(builder: (context) => EditProfileScreen()));
   }
 
-  void _viewPosts() {
-    Navigator.pushNamed(context, '/userPosts');
+  void _viewPosts() async {
+    // Carrega os posts
+    try {
+      final postsResponse = await supabase
+          .from('posts')
+          .select('*')
+          .eq('user_id', widget.profileUserId.toString());
+
+      setState(() {
+        _userPosts = postsResponse;
+        _showPosts = true; // Exibe a seção de posts
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar os posts')),
+      );
+    }
   }
+
+  Widget _fallbackPostWidget(String? title) {
+    return Container(
+      color: Colors.grey[200], // Fundo cinza claro
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.text_snippet, // Ícone de texto
+            size: 40,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 8),
+          Text(
+            title ?? 'Sem título', // Título ou mensagem padrão
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.black54),
+            overflow: TextOverflow.ellipsis, // Evita texto muito longo
+            maxLines: 2,
+          ),
+        ],
+      ),
+    );
+  } 
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: Center(child: Text('Erro ao carregar o perfil')),
       );
     }
-    
+
     final isCurrentUser = currentUserId == widget.profileUserId;
     final username = _userProfileData?['username'] ?? '@desconhecido';
     final fullName = _userProfileData?['full_name'] ?? 'Usuário';
@@ -248,100 +291,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profileImageUrl = _userProfileData?['profile_image_path'];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Perfil do Usuário'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: MainAppBar(),
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Foto e informações principais
+            SizedBox(height: 16),
             CircleAvatar(
-                radius: 60,
-                backgroundImage: profileImageUrl != null
-                    ? NetworkImage(profileImageUrl)
-                    : Icon(Icons.person) as ImageProvider,
-              ),
-            SizedBox(height: 16),
-            Text(username, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(fullName, style: TextStyle(fontSize: 16, color: Colors.grey)),
-            SizedBox(height: 8),
-            Text(
-              bio,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            Text(
-              'Desde ${DateTime.parse(createdAt).toLocal().toString().split(' ')[0]}',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              radius: 80,
+              backgroundImage: profileImageUrl != null
+                  ? NetworkImage(profileImageUrl)
+                  : Icon(Icons.person) as ImageProvider,
             ),
             SizedBox(height: 16),
+            Text(username, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(fullName, style: TextStyle(fontSize: 18, color: Colors.grey)),
+            Divider(height: 20, thickness: 2),
+            // Seções horizontais
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                GestureDetector(
-                  onTap: _viewFollowers, // Abre o dialog com a lista de seguidores
+                // Interesses
+                Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true, // Garante que a lista se ajuste ao tamanho disponível
+                    physics: NeverScrollableScrollPhysics(), // Evita rolagem separada
+                    itemCount: _interests.length,
+                    itemBuilder: (context, index) {
+                      final interest = _interests[index];
+                      final iconPath = interest['iconPath'];
+                      final icon = (iconPath != null && iconPath.isNotEmpty)
+                          ? Image.network(iconPath, height: 24, width: 24)
+                          : Icon(Icons.category, size: 24);
+
+                      return ListTile(
+                        leading: icon,
+                        title: Text(interest['name'] ?? 'Desconhecido'),
+                        contentPadding: EdgeInsets.zero, // Remove padding extra
+                        horizontalTitleGap: 8, // Ajusta espaçamento entre ícone e texto
+                      );
+                    },
+                  ),
+                ),
+                VerticalDivider(),
+                // Bio e data de criação
+                Expanded(
                   child: Column(
                     children: [
-                      Text('$_followersCount',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('Seguidores', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      Text(bio, textAlign: TextAlign.center),
+                      Text('Desde ${DateTime.parse(createdAt).toLocal().toString().split(' ')[0]}'),
                     ],
                   ),
                 ),
-                Column(
-                  children: [
-                    Text(
-                      _postCount.toString(), // Mostra o número real de posts
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Posts',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
+                VerticalDivider(),
+                // Seguidores e posts
+                Expanded(
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _viewFollowers,
+                        child: Text('$_followersCount Seguidores'),
+                      ),
+                      Text('$_postCount Posts'),
+                    ],
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            Divider(height: 20, thickness: 2),
             if (!isCurrentUser)
               ElevatedButton(
                 onPressed: _toggleFollow,
                 child: Text(_isFollowing ? 'Deixar de Seguir' : 'Seguir'),
               ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _viewPosts, //chamar tela de posts
-              child: Text('Incis'),
-            ),
-            SizedBox(height: 16),
-            Divider(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _interests.length,
+            ElevatedButton(onPressed: _viewPosts, child: Text('Incis')),
+            // Posts do usuário
+            if (_showPosts)
+              Divider(height: 20, thickness: 2),
+            if (_showPosts)
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: _userPosts.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
                 itemBuilder: (context, index) {
-                  final interest = _interests[index];
-                  final iconPath = interest['iconPath'];
-                  final icon = (iconPath != null && iconPath.isNotEmpty)
-                      ? Image.network(iconPath, height: 24, width: 24)
-                      : Icon(Icons.category, size: 24);
+                  final post = _userPosts[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PostFullscreen(postId: post['post_id']),
+                          ),
+                        );
+                    },
+                    child: post['image_path'] != null && post['image_path'].isNotEmpty
+                      ? Image.network(
+                          post['image_path'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => _fallbackPostWidget(post['title']),
+                        )
+                      : _fallbackPostWidget(post['title']),
 
-                  return ListTile(
-                    leading: icon,
-                    title: Text(interest['name'] ?? 'Desconhecido'),
                   );
                 },
               ),
-            ),
           ],
         ),
       ),
-      floatingActionButton: currentUserId == widget.profileUserId
-          ? FloatingActionButton(
-              onPressed: _editProfile,
-              child: Icon(Icons.edit),
-            )
-          : null, // Botão só aparece se o perfil for do usuário atual
+      floatingActionButton: isCurrentUser
+          ? FloatingActionButton(onPressed: _editProfile, child: Icon(Icons.edit))
+          : null,
     );
   }
 }

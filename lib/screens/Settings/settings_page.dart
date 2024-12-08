@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/services/themeprovider.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:logger/logger.dart';
@@ -115,7 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurações')),
+      appBar: MainAppBar(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

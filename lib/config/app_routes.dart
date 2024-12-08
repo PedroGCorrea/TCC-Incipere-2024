@@ -17,6 +17,7 @@ import '../screens/Settings/settings_page.dart';
 import '../models/Post/new_post.dart';
 import '../models/Event/new_event.dart';
 import '../screens/Notifications/notifications_page.dart';
+import '../screens/Bookmarks/bookmarks_page.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -36,6 +37,7 @@ class AppRoutes {
   static const String addPost = '/add-post';
   static const String addEvent = '/add-event';
   static const String notifications = '/notifications';
+  static const String bookmarks = '/bookmarks';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final user = Supabase.instance.client.auth.currentUser;
@@ -76,6 +78,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => NewEventScreen());
       case AppRoutes.notifications:
         return MaterialPageRoute(builder: (_) => NotificationsScreen());
+      case AppRoutes.bookmarks:
+        return MaterialPageRoute(builder: (_) => BookmarksScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

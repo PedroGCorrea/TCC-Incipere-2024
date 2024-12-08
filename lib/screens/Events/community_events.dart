@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/models/Event/full_screen_event.dart';
+import 'package:incipere/widgets/main_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CommunityEvents extends StatefulWidget {
@@ -58,10 +59,7 @@ class _CommunityEventsState extends State<CommunityEvents> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Próximos Eventos'),
-        centerTitle: true,
-      ),
+      appBar: MainAppBar(),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _futureEvents,
         builder: (context, snapshot) {

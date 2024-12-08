@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/widgets/main_bar.dart';
+import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/Post/full_screen_post.dart';
 
@@ -25,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await supabase
           .from('posts')
-          .select('post_id, user_id, title, image_path, likes, created_at')
+          .select('post_id, user_id, title, image_path, created_at')
           .order('created_at', ascending: false);
 
       setState(() {
@@ -98,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
 
-                            // Título do post
                             if (post['title'] != null)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -111,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
 
-                            // Imagem do post (se disponível)
                             if (post['image_path'] != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 10),
@@ -119,36 +118,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   post['image_path'],
                                   fit: BoxFit.cover,
                                   width: double.infinity,
-                                  height: 200,
+                                  height: MediaQuery.of(context).size.height * 0.2,
                                 ),
                               ),
-
-                            // Botões de interação (like e comentários)
-                            Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.thumb_up_alt_outlined),
-                                        onPressed: () {
-                                          // Função de like a ser adicionada futuramente
-                                        },
-                                      ),
-                                      Text('${post['likes']}'),
-                                    ],
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.comment_outlined),
-                                    onPressed: () {
-                                      // Função de comentário a ser adicionada futuramente
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                       ),

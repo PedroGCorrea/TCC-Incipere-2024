@@ -239,8 +239,7 @@ class _NewPostScreenState extends State<NewPostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MainAppBar(
-      ),
+      appBar: MainAppBar(),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(

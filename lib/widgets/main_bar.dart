@@ -116,8 +116,8 @@ class MainAppBarState extends State<MainAppBar> {
             onTap: () {
               Navigator.pushNamed(context, AppRoutes.home);
             },
-            child: Text(
-              'InciPere', // Nome do aplicativo como logo
+            child: Text( //substituir aqui com a logo do app
+              'InciPere', 
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -197,7 +197,7 @@ class MainAppBarState extends State<MainAppBar> {
         IconButton(
           icon: Icon(Icons.favorite),
           onPressed: () {
-            Navigator.pushNamed(context, '/favorites');
+            Navigator.pushNamed(context, '/bookmarks');
           },
         ),
         // Botão de Perfil Rápido
