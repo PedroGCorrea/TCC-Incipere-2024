@@ -1,8 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:incipere/config/app_routes.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/messenger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io' show Platform;
+
+//login com google configurado para porta 58565
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -135,13 +142,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
             // Botão "Entrar com o Google"
             OutlinedButton.icon(
-              onPressed: () {
-                // Implementação futura
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Autenticação com Google será implementada em breve.'),
-                  ),
-                );
+              onPressed: () async {
+                try {
+                  await googleLogin(context);
+                  // Redirecionar ou realizar outra ação após o login
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro: $e')),
+                  );
+                }
               },
               icon: Icon(Icons.login),
               label: Text('Entrar com o Google'),
@@ -166,5 +175,56 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> googleLogin(BuildContext context) async {
+    try {
+
+      // Login com Google
+      if (kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        // Web, macOS, Windows, Linux
+        await Supabase.instance.client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          authScreenLaunchMode: kIsWeb
+              ? LaunchMode.platformDefault
+              : LaunchMode.externalApplication,
+        );
+      } else if (Platform.isAndroid || Platform.isIOS) {
+        // iOS e Android
+        const webClientId = '1004314503008-0qvm1u2c12g4cpp1i60fqa07alq1cgqa.apps.googleusercontent.com';
+        const iosClientId = '1004314503008-q2vi3qd9h2clo61l29hvobrv3eu8lnk8.apps.googleusercontent.com';
+
+        final GoogleSignIn googleSignIn = GoogleSignIn(
+          clientId: Platform.isIOS ? iosClientId : null,
+          serverClientId: webClientId,
+        );
+
+        final googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          throw 'Usuário cancelou o login com Google.';
+        }
+
+        final googleAuth = await googleUser.authentication;
+        final idToken = googleAuth.idToken;
+        final accessToken = googleAuth.accessToken;
+
+        if (idToken == null || accessToken == null) {
+          throw 'Tokens não encontrados.';
+        }
+
+        final response = await Supabase.instance.client.auth.signInWithIdToken(
+          provider: OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+      } else {
+        throw UnsupportedError('Plataforma não suportada para login com Google.');
+      }
+    } catch (e) {
+      debugPrint('Erro ao fazer login com Google: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao fazer login: $e')),
+      );
+    }
   }
 }

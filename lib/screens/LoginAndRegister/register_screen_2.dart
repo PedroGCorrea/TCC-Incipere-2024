@@ -3,6 +3,7 @@ import 'dart:io' as io; // Apenas para dispositivos móveis e desktop
 import 'package:flutter/foundation.dart' show kIsWeb; // Para verificar a plataforma
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:incipere/services/supabase.dart';
 import 'package:incipere/services/userprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,17 +23,56 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
   Uint8List? _webImage; // Usado para armazenar imagens na web
   io.File? _selectedImage; // Usado para dispositivos móveis e desktop
   final ImagePicker _picker = ImagePicker();
+  final SupabaseClient supabaseClient = Supabase.instance.client;
+  late UserProvider userProvider;
+  late Object? userId;
 
   @override
   void initState() {
     super.initState();
+    handleUserProvider();
   }
 
   void onPhotoSelected() {
-  setState(() {
-    isPhotoSelected = true;
-  });
-}
+    setState(() {
+      isPhotoSelected = true;
+    });
+  }
+
+  Future<void> handleUserProvider() async {
+    var log = Logger();
+    userProvider = Provider.of<UserProvider>(context, listen: false);
+    
+    if(userProvider.userId == null) {
+      // Referência ao bucket no Supabase
+      final supabaseClient = Supabase.instance.client;
+      final user = supabaseClient.auth.currentUser;
+      
+      if (user == null || user.isAnonymous) {
+      throw 'Usuário não autenticado';
+    }
+
+      final userprofile = await supabaseClient
+          .from('user_profiles')
+          .select('user_id, username, full_name')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      log.d('userId: $userId');
+      log.d('user: $user');
+
+      if (userprofile != null){
+        await userProvider.saveUserData(
+          userId: userprofile!['user_id'],
+          username: userprofile['username'],
+          fullName: userprofile['full_name'],
+          email: user.email.toString(),
+        );
+      }
+    }
+    
+    userId = userProvider.userId!;
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -70,32 +110,8 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
   }
 
   void _saveImageAndProceed() async {
-    var log = Logger();
     try {
-      // Obter o userId do UserProvider
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final userId = userProvider.userId;
-
-      // Referência ao bucket no Supabase
-      final supabaseClient = Supabase.instance.client;
-
-      final user = supabaseClient.auth.currentUser;
-      log.d('user: $user');
-      if (user == null) {
-        throw 'Usuário não autenticado';
-      }
-
-      log.d('userId: $userId');
-      log.d('user: $user');
-
-      if (userId == null) {
-        throw Exception('Usuário não identificado');
-      }
-
-      // Nome do arquivo no bucket
       final fileName = '$userId.png';
-
-
 
       // Dados da imagem
       final Uint8List fileBytes;
@@ -125,7 +141,7 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
       await supabaseClient
           .from('user_profiles')
           .update({'profile_image_path': publicUrl})
-          .eq('user_id', userId);
+          .eq('user_id', userId!);
 
       // Prosseguir para a próxima tela
       Navigator.pushReplacementNamed(context, AppRoutes.register3);

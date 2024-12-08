@@ -103,7 +103,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         'event_id': widget.event['event_id'],
         'user_id': userId,
       });
-      Logger().i(response);
       setState(() {
         _isUserSubscribedFuture = Future.value(true);
       });

@@ -19,7 +19,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _verifyIfHasUserProfile();
     _loadPosts();
+  }
+
+  Future<void> _verifyIfHasUserProfile() async {
+    try {
+      final response = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('user_id', supabase.auth.currentUser!.id);
+      if (response.isEmpty) {
+        Navigator.pushNamed(context, '/register2');
+      }
+    } catch (error) {
+      debugPrint('Erro ao verificar perfil: $error');
+    }
   }
 
   Future<void> _loadPosts() async {

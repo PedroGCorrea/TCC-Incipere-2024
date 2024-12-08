@@ -4,7 +4,6 @@ import 'package:incipere/services/userprovider.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/messenger.dart';
-import 'package:logger/logger.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -24,7 +23,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // Função para criar a conta
   Future<void> createAccount() async {
-    var log = Logger();
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
     final email = _emailController.text.trim().toLowerCase();
@@ -80,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final userId = user.id;
 
       // Insere dados adicionais na tabela `user_profiles`
-      await supabase.from('user_profiles').insert({
+      await supabase.from('user_profiles').upsert({
         'user_id': userId,
         'username': username,
         'full_name': '$firstName $lastName',
@@ -101,8 +99,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         await prefs.setString('username', username);
         await prefs.setString('full_name', '$firstName $lastName');
       } */
-
-      log.d(supabase.auth.getUser());
 
       // Feedback de sucesso e navegação
       Messenger.showSuccess(context, 'Conta criada com sucesso!');
