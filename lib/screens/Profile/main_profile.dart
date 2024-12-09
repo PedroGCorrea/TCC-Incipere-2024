@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:incipere/models/Post/full_screen_post.dart';
 import 'package:incipere/screens/Profile/edit_profile.dart';
 import 'package:incipere/widgets/main_bar.dart';
-import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -29,7 +28,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
-
   }
 
   Future<void> _loadUserProfile() async {
@@ -143,7 +141,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _viewFollowers() {
-    var log = Logger();
   showDialog(
     context: context,
     builder: (context) {
@@ -153,8 +150,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             .select('follower_id, followed_at, user_profiles!inner(user_id, username, profile_image_path)')
             .eq('user_id', widget.profileUserId.toString()), // Busca seguidores do usuário atual
         builder: (context, snapshot) {
-          log.i(snapshot.data);
-          log.i(snapshot.error);
           if (snapshot.connectionState == ConnectionState.waiting) {
             return AlertDialog(
               content: Center(child: CircularProgressIndicator()),
@@ -301,8 +296,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             CircleAvatar(
               radius: 80,
               backgroundImage: profileImageUrl != null
-                  ? NetworkImage(profileImageUrl)
-                  : Icon(Icons.person) as ImageProvider,
+                          ? NetworkImage(profileImageUrl)
+                          : null,
+                      child: profileImageUrl == null
+                          ? Icon(Icons.person, size: 50, color: Colors.grey)
+                          : null,
             ),
             SizedBox(height: 16),
             Text(username, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),

@@ -618,10 +618,12 @@ class _PostFullscreenState extends State<PostFullscreen> {
                     return ListTile(
                       leading: GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(
+                          Navigator.push(
                             context,
-                            '/profile',
-                            arguments: {'profileUserId': comment['user_id']},
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProfileScreen(profileUserId: comment['user_id']),
+                            ),
                           );
                         },
                         child: CircleAvatar(
@@ -632,10 +634,12 @@ class _PostFullscreenState extends State<PostFullscreen> {
                       ),
                       title: GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(
+                          Navigator.push(
                             context,
-                            '/profile',
-                            arguments: {'profileUserId': comment['user_id']},
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProfileScreen(profileUserId: comment['user_id']),
+                            ),
                           );
                         },
                         child: Text('@${user['username'] ?? 'Desconhecido'}'),

@@ -204,7 +204,6 @@ class _NewPostScreenState extends State<NewPostScreen> {
         'description': jsonEncode(creativeProcess), // Converte o processo criativo para JSON
         'working_time': _workingTime.toString(),
         'work_type': _workType,
-        'likes': 0,
         
       });
 

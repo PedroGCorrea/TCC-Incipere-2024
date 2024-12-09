@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -61,6 +62,22 @@ class _EditCreativeProcessModalState extends State<EditCreativeProcessModal> {
       final element = widget.data["elements"]
           .firstWhere((element) => element["id"] == id, orElse: () => null);
 
+      if (element["type"] == 'link'){
+        if (field == 'link-title') {
+          final initialValue = (element != null && element["title"] != null && element["title"].toString().isNotEmpty)
+            ? element["title"].toString() // Usa o conteúdo como texto inicial
+            : ""; // Caso contrário, inicializa com string vazia
+        widget.controllers[key] = TextEditingController(text: initialValue);
+        return widget.controllers[key]!;
+        }else if (field == 'link-url') {
+          final initialValue = (element != null && element["content"] != null && element["content"].toString().isNotEmpty)
+            ? element["content"].toString() // Usa o conteúdo como texto inicial
+            : ""; // Caso contrário, inicializa com string vazia
+          widget.controllers[key] = TextEditingController(text: initialValue);
+          return widget.controllers[key]!;
+        }
+      }
+      
       // Verifica se o campo content existe e não está vazio
       final initialValue = (element != null && element["content"] != null && element["content"].toString().isNotEmpty)
           ? element["content"].toString() // Usa o conteúdo como texto inicial

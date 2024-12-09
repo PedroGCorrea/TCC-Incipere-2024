@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:incipere/config/app_routes.dart';
-import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/messenger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -212,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
           throw 'Tokens não encontrados.';
         }
 
-        final response = await Supabase.instance.client.auth.signInWithIdToken(
+        await Supabase.instance.client.auth.signInWithIdToken(
           provider: OAuthProvider.google,
           idToken: idToken,
           accessToken: accessToken,

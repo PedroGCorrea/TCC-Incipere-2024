@@ -132,9 +132,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             fileOptions: const FileOptions(upsert: true),
           );
 
-      var log = Logger();
-      log.i(response1);
-
       final publicUrl = supabase.storage
           .from('userprofilepictures')
           .getPublicUrl(fileName);
@@ -166,7 +163,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'username': _usernameController.text.trim(),
         'full_name': _fullNameController.text.trim(),
         'bio': _bioController.text.trim(),
-        if (_profileImageUrl != null) 'profile_image_path': imageUrl,
+        if (imageUrl != null) 'profile_image_path': imageUrl,
       }).eq('user_id', user.id);
 
       // Atualizar interesses

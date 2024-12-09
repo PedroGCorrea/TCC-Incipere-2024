@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:incipere/services/userprovider.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterScreen4 extends StatefulWidget {
@@ -17,6 +15,7 @@ class _RegisterScreen4State extends State<RegisterScreen4> {
   List<Map<String, dynamic>> categories = [];
   List<String> selectedCategoryIds = [];
   bool isInterestSelected = false;
+  late Future<Map<String, dynamic>> _userDataFuture;
 
   @override
   void initState() {
@@ -27,6 +26,7 @@ class _RegisterScreen4State extends State<RegisterScreen4> {
         fetchInitialCategories();
       }
     });
+    _userDataFuture = _fetchUserData();
   }
 
   Future<void> fetchInitialCategories() async {
@@ -109,127 +109,197 @@ class _RegisterScreen4State extends State<RegisterScreen4> {
 
   @override
   Widget build(BuildContext context) {
-    // Mock de dados do usuário
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final String username = userProvider.username ?? '';
-    final String fullName = userProvider.fullName ?? '';
-    final String profileImageUrl = userProvider.profilePictureUrl ?? '';
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _userDataFuture, // Função que busca os dados do usuário
+      builder: (context, snapshot) {
+        // Enquanto os dados estão sendo carregados
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Criação de Conta - Parte 4'),
+            ),
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Criação de Conta - Parte 4'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            // Coluna da esquerda: Pesquisa e lista de categorias
-            Expanded(
+        // Caso haja erro na obtenção dos dados
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Criação de Conta - Parte 4'),
+            ),
+            body: Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search',
-                      border: OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.search),
-                        onPressed: () {
-                          searchCategories(_searchController.text.trim());
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Trending:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        final category = categories[index];
-                        final isSelected =
-                            selectedCategoryIds.contains(category['category_id']);
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              toggleCategorySelection(category['category_id']);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: isSelected
-                                  ? Colors.white
-                                  : Colors.black87,
-                              backgroundColor: isSelected
-                                  ? Colors.deepPurple
-                                  : Colors.grey.shade300,
-                            ),
-                            child: Text(category['name']),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: fetchInitialCategories,
-                    child: Text('See more...'),
+                  Text('Erro ao carregar os dados do usuário' + snapshot.error.toString()),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {}); // Tentar novamente
+                    },
+                    child: Text('Tentar Novamente'),
                   ),
                 ],
               ),
             ),
-            SizedBox(width: 24),
-            // Coluna da direita: Informações do usuário
-            Column(
-              mainAxisSize: MainAxisSize.min,
+          );
+        }
+
+        // Dados carregados com sucesso
+        final userData = snapshot.data!;
+        final username = userData['username'] ?? 'Usuário';
+        final fullName = userData['full_name'] ?? 'Nome completo';
+        final profileImageUrl = userData['profile_image_path'] ?? '';
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('Criação de Conta - Parte 4'),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage(profileImageUrl),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  username,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                // Coluna da esquerda: Pesquisa e lista de categorias
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Search',
+                          border: OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.search),
+                            onPressed: () {
+                              searchCategories(_searchController.text.trim());
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Trending:',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: categories.length,
+                          itemBuilder: (context, index) {
+                            final category = categories[index];
+                            final isSelected = selectedCategoryIds.contains(
+                                category['category_id']);
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  toggleCategorySelection(
+                                      category['category_id']);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: isSelected
+                                      ? Colors.white
+                                      : Colors.black87,
+                                  backgroundColor: isSelected
+                                      ? Colors.deepPurple
+                                      : Colors.grey.shade300,
+                                ),
+                                child: Text(category['name']),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: fetchInitialCategories,
+                        child: Text('See more...'),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  fullName,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: isInterestSelected ? saveInterestsAndProceed : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isInterestSelected
-                        ? Colors.deepPurple
-                        : Colors.grey.shade400,
-                  ),
-                  child: Text(isInterestSelected ? 'Next' : 'Skip'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
-                  child: Text('Just take me to the site'),
+                SizedBox(width: 24),
+                // Coluna da direita: Informações do usuário
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: profileImageUrl.isNotEmpty
+                          ? NetworkImage(profileImageUrl)
+                          : null,
+                      child: profileImageUrl.isEmpty
+                          ? Icon(Icons.person, size: 50, color: Colors.grey)
+                          : null,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      username,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      fullName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: isInterestSelected
+                          ? saveInterestsAndProceed
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isInterestSelected
+                            ? Colors.deepPurple
+                            : Colors.grey.shade400,
+                      ),
+                      child: Text(isInterestSelected ? 'Next' : 'Skip'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/home');
+                      },
+                      child: Text('Just take me to the site'),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  Future<Map<String, dynamic>> _fetchUserData() async {
+    final supabaseClient = Supabase.instance.client;
+
+    // Obter o usuário autenticado
+    final user = supabaseClient.auth.currentUser;
+
+    if (user == null || user.isAnonymous) {
+      throw 'Usuário não autenticado';
+    }
+
+    // Buscar dados do perfil no Supabase
+    final response = await supabaseClient
+        .from('user_profiles')
+        .select('username, full_name, profile_image_path')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (response == null) {
+      throw 'Usuário não encontrado';
+    }
+
+    return response as Map<String, dynamic>;
   }
 }

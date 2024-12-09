@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/config/app_routes.dart';
-import 'package:incipere/services/userprovider.dart';
-import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/messenger.dart';
 
@@ -68,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       final loginResponse = await supabase.auth.signInWithPassword(email: email, password: password);
-
+      
       if (loginResponse.session == null) {
         Messenger.showError(context, 'Erro ao autenticar usuário após registro.');
         return;
@@ -77,28 +76,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // Obtém o userId
       final userId = user.id;
 
+      var log = Logger();
+      log.i(userId);
+
       // Insere dados adicionais na tabela `user_profiles`
-      await supabase.from('user_profiles').upsert({
-        'user_id': userId,
-        'username': username,
-        'full_name': '$firstName $lastName',
-      });
+      final response = await supabase
+        .from('user_profiles')
+        .update({
+          'user_id': userId,
+          'username': username,
+          'full_name': '$firstName $lastName',
+        })
+        .eq('user_id', userId);
 
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      await userProvider.saveUserData(
-        userId: userId,
-        username: username,
-        fullName: '$firstName $lastName',
-        email: email
-      );
-
-      /* // Salva o token da sessão, se disponível
-      if (response.session != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('supabase_token', response.session!.accessToken);
-        await prefs.setString('username', username);
-        await prefs.setString('full_name', '$firstName $lastName');
-      } */
+      log.i(response);
 
       // Feedback de sucesso e navegação
       Messenger.showSuccess(context, 'Conta criada com sucesso!');

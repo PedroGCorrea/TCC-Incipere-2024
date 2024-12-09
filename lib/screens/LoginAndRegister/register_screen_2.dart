@@ -3,12 +3,8 @@ import 'dart:io' as io; // Apenas para dispositivos móveis e desktop
 import 'package:flutter/foundation.dart' show kIsWeb; // Para verificar a plataforma
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:incipere/services/supabase.dart';
-import 'package:incipere/services/userprovider.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/app_routes.dart';
-import 'package:logger/logger.dart';
 
 bool isPhotoSelected = false;
 
@@ -24,54 +20,20 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
   io.File? _selectedImage; // Usado para dispositivos móveis e desktop
   final ImagePicker _picker = ImagePicker();
   final SupabaseClient supabaseClient = Supabase.instance.client;
-  late UserProvider userProvider;
-  late Object? userId;
+  late final User ?user;
+  late Future<Map<String, dynamic>> _userDataFuture;
 
   @override
   void initState() {
     super.initState();
-    handleUserProvider();
+    user = supabaseClient.auth.currentUser;
+    _userDataFuture = _fetchUserData();
   }
 
   void onPhotoSelected() {
     setState(() {
       isPhotoSelected = true;
     });
-  }
-
-  Future<void> handleUserProvider() async {
-    var log = Logger();
-    userProvider = Provider.of<UserProvider>(context, listen: false);
-    
-    if(userProvider.userId == null) {
-      // Referência ao bucket no Supabase
-      final supabaseClient = Supabase.instance.client;
-      final user = supabaseClient.auth.currentUser;
-      
-      if (user == null || user.isAnonymous) {
-      throw 'Usuário não autenticado';
-    }
-
-      final userprofile = await supabaseClient
-          .from('user_profiles')
-          .select('user_id, username, full_name')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-      log.d('userId: $userId');
-      log.d('user: $user');
-
-      if (userprofile != null){
-        await userProvider.saveUserData(
-          userId: userprofile!['user_id'],
-          username: userprofile['username'],
-          fullName: userprofile['full_name'],
-          email: user.email.toString(),
-        );
-      }
-    }
-    
-    userId = userProvider.userId!;
   }
 
   Future<void> _pickImage() async {
@@ -100,7 +62,6 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
     }
   }
 
-
   void _skipOrNext() {
     if (_webImage == null && _selectedImage == null) {
       Navigator.pushNamed(context, AppRoutes.register3);
@@ -111,7 +72,8 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
 
   void _saveImageAndProceed() async {
     try {
-      final fileName = '$userId.png';
+      if(user == null) return;
+      final fileName = '${user?.id}.png';
 
       // Dados da imagem
       final Uint8List fileBytes;
@@ -135,13 +97,11 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
 
       print('Imagem salva com sucesso. URL: $publicUrl');
 
-      userProvider.saveProfilePictureUrl(publicUrl);
-
       // Atualizar o perfil do usuário com a URL da imagemS
       await supabaseClient
           .from('user_profiles')
           .update({'profile_image_path': publicUrl})
-          .eq('user_id', userId!);
+          .eq('user_id', user!.id);
 
       // Prosseguir para a próxima tela
       Navigator.pushReplacementNamed(context, AppRoutes.register3);
@@ -166,111 +126,139 @@ class _RegisterScreen2State extends State<RegisterScreen2> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Consumer<UserProvider>(
-    builder: (context, userProvider, child) {
-      // Se ainda estiver carregando
-      if (userProvider.isLoading) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text('Criação de Conta - Parte 2'),
-          ),
-          body: Center(child: CircularProgressIndicator()),
-        );
-      }
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _userDataFuture, // Função que obtém os dados do usuário
+      builder: (context, snapshot) {
+        // Enquanto os dados estão sendo carregados
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Criação de Conta - Parte 2'),
+            ),
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-      // Se não há usuário carregado
-      if (userProvider.username == null || userProvider.fullName == null) {
+        // Se houve erro ao buscar os dados
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Criação de Conta - Parte 2'),
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Erro ao carregar os dados do usuário'),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {}); // Recarregar os dados
+                    },
+                    child: Text('Tentar Novamente'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Se os dados foram carregados corretamente
+        final userData = snapshot.data!;
+        final username = userData['username'] ?? 'Desconhecido';
+        final fullName = userData['full_name'] ?? 'Desconhecido';
+
         return Scaffold(
           appBar: AppBar(
             title: Text('Criação de Conta - Parte 2'),
           ),
-          body: Center(
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Não foi possível carregar os dados do usuário'),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: _webImage != null
+                            ? MemoryImage(_webImage!)
+                            : _selectedImage != null
+                                ? FileImage(_selectedImage!)
+                                : null,
+                        child: _webImage == null && _selectedImage == null
+                            ? Icon(Icons.add_a_photo, size: 50)
+                            : null,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Nome de usuário:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            username, // Vem do snapshot
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Nome completo:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            fullName, // Vem do snapshot
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Spacer(),
                 ElevatedButton(
-                  onPressed: () {
-                    // Tente recarregar ou voltar para tela anterior
-                    userProvider.loadUserData();
-                  },
-                  child: Text('Tentar Novamente'),
-                )
+                  onPressed: _skipOrNext,
+                  child: Text(isPhotoSelected == false ? 'Pular' : 'Próximo'),
+                ),
+                SizedBox(height: 8),
+                TextButton(
+                  onPressed: _goToHomePage,
+                  child: Text('Apenas me leve ao site'),
+                ),
               ],
             ),
           ),
         );
-      }
+      },
+    );
+  }
 
-      // Conteúdo normal com dados do Provider
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Criação de Conta - Parte 2'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: _webImage != null
-                        ? MemoryImage(_webImage!)
-                        : _selectedImage != null
-                            ? FileImage(_selectedImage!)
-                            : null,
-                    child: _webImage == null && _selectedImage == null
-                        ? Icon(Icons.add_a_photo, size: 50)
-                        : null,
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Nome de usuário:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          userProvider.username!, // Agora vem do Provider
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Nome completo:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          userProvider.fullName!, // Agora vem do Provider
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Spacer(),
-              ElevatedButton(
-                onPressed: _skipOrNext,
-                child: Text(isPhotoSelected == false ? 'Pular' : 'Próximo'),
-              ),
-              SizedBox(height: 8),
-              TextButton(
-                onPressed: _goToHomePage,
-                child: Text('Apenas me leve ao site'),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
+  Future<Map<String, dynamic>> _fetchUserData() async {
+    final supabaseClient = Supabase.instance.client;
+
+    // Obter o usuário autenticado
+    final user = supabaseClient.auth.currentUser;
+
+    if (user == null || user.isAnonymous) {
+      throw 'Usuário não autenticado';
+    }
+
+    // Obter dados do perfil no Supabase
+    final response = await supabaseClient
+        .from('user_profiles')
+        .select('username, full_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (response == null) {
+      throw 'Usuário não encontrado';
+    }
+
+    return response as Map<String, dynamic>;
+  }
 }
