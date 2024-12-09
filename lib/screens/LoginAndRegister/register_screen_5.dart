@@ -133,8 +133,9 @@ class _WelcomePageState extends State<WelcomePage> {
                   SizedBox(height: 32), // Espaçamento maior
                   // Botão para iniciar
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       // Ação ao clicar no botão
+                      await updateCompletedRegister();
                       Navigator.pushReplacementNamed(context, '/profile'); // Navegar para a tela de perfil
                     },
                     style: ElevatedButton.styleFrom(
@@ -185,5 +186,33 @@ class _WelcomePageState extends State<WelcomePage> {
     }
 
     return response as Map<String, dynamic>;
+  }
+
+  Future<void> updateCompletedRegister() async {
+    final supabaseClient = Supabase.instance.client;
+
+    // Obter o usuário autenticado
+    final user = supabaseClient.auth.currentUser;
+
+    if (user == null) {
+      throw 'Usuário não autenticado';
+    }
+
+    // Atualizar o campo completed_register na tabela user_profiles
+    final response = await supabaseClient
+        .from('user_profiles')
+        .update({'completed_register': true})
+        .eq('user_id', user.id);
+
+    // Verificar se houve algum erro na atualização
+    if (response.error != null) {
+      throw 'Erro ao atualizar o status de registro: ${response.error!.message}';
+    }
+
+    if (response.count == 0) {
+      throw 'Nenhum registro encontrado para o usuário com ID: ${user.id}';
+    }
+
+    print('Registro atualizado com sucesso!');
   }
 }
