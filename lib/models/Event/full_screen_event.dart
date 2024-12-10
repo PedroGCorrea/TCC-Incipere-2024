@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/models/Event/edit_event.dart';
 import 'package:incipere/widgets/main_bar.dart';
-import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EventDetailScreen extends StatefulWidget {
@@ -99,7 +98,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     if (userId == null) return;
 
     try {
-      final response = await Supabase.instance.client.from('events_subs').insert({
+      await Supabase.instance.client.from('events_subs').insert({
         'event_id': widget.event['event_id'],
         'user_id': userId,
       });

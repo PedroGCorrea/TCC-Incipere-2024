@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:incipere/screens/Profile/main_profile.dart';
 import 'package:incipere/widgets/main_bar.dart';
-import 'package:logger/logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/Post/full_screen_post.dart';
 

@@ -204,15 +204,6 @@ class _WelcomePageState extends State<WelcomePage> {
         .update({'completed_register': true})
         .eq('user_id', user.id);
 
-    // Verificar se houve algum erro na atualização
-    if (response.error != null) {
-      throw 'Erro ao atualizar o status de registro: ${response.error!.message}';
-    }
-
-    if (response.count == 0) {
-      throw 'Nenhum registro encontrado para o usuário com ID: ${user.id}';
-    }
-
     print('Registro atualizado com sucesso!');
   }
 }
